@@ -5,26 +5,49 @@ import pyautogui as pag
 import imutils
 import dlib
 import cv2
-
+import time
+import pickle
+from os import path
 # Thresholds and consecutive frame length for triggering the mouse action.
 MOUTH_AR_THRESH = 0.6
-MOUTH_AR_CONSECUTIVE_FRAMES = 15
-EYE_AR_THRESH = 0.19
-EYE_AR_CONSECUTIVE_FRAMES = 15
-WINK_AR_DIFF_THRESH = 0.04
-WINK_AR_CLOSE_THRESH = 0.19
-WINK_CONSECUTIVE_FRAMES = 10
+MOUTH_AR_CONSECUTIVE_FRAMES = 4
+EYE_AR_THRESH = 0.23
+EYE_AR_CONSECUTIVE_FRAMES = 4
+WINK_AR_DIFF_THRESH = 0.075
+WINK_AR_CLOSE_THRESH = 0.20
+WINK_CONSECUTIVE_FRAMES = 4
+
+N = 7  
+
+# Initialize screen size and scale
+SCREEN_SIZE = pag.size()
+DECT_SIZE = (400,400)
+MOUSE_X_SCALE = 1.0
+MOUSE_Y_SCALE = 1.0
+SCREEN_CENTER = (SCREEN_SIZE[0]//2, SCREEN_SIZE[1]//2)
+
+# Scroll variables
+SCROLL_SCALE = 6 # Scroll speed
+SCROLL_THRESH = 0.2 # Value between 0 and 1 determining distance from center to edge of screen at which to start scrolling
+
+# Initialize calibration vars
+SCREEN_LEFT = 1
+SCREEN_RIGHT = DECT_SIZE[0]
+SCREEN_TOP = 1
+SCREEN_BOTTOM = DECT_SIZE[1]
 
 # Initialize the frame counters for each action as well as 
 # booleans used to indicate if action is performed or not
 MOUTH_COUNTER = 0
 EYE_COUNTER = 0
 WINK_COUNTER = 0
-INPUT_MODE = False
-EYE_CLICK = False
+INPUT_MODE = True
+EYE_CLICK = True
 LEFT_WINK = False
 RIGHT_WINK = False
 SCROLL_MODE = False
+CALIBRATION_MODE = False
+CALIBRATION_STEP = 0
 ANCHOR_POINT = (0, 0)
 WHITE_COLOR = (255, 255, 255)
 YELLOW_COLOR = (0, 255, 255)
@@ -32,6 +55,9 @@ RED_COLOR = (0, 0, 255)
 GREEN_COLOR = (0, 255, 0)
 BLUE_COLOR = (255, 0, 0)
 BLACK_COLOR = (0, 0, 0)
+
+if not path.exists("bounds.pkl"):
+    CALIBRATION_MODE = True
 
 # Initialize Dlib's face detector (HOG-based) and then create
 # the facial landmark predictor
@@ -48,14 +74,25 @@ predictor = dlib.shape_predictor(shape_predictor)
 
 # Video capture
 vid = cv2.VideoCapture(0)
-resolution_w = 1366
-resolution_h = 768
-cam_w = 640
-cam_h = 480
+vid.set(cv2.CAP_PROP_BUFFERSIZE, 3) 
+resolution_w, resolution_h = SCREEN_SIZE
+
+xhist = [0 for i in range(0,N-1)]
+yhist = [0 for i in range(0,N-1)]
+
+cam_w, cam_h = DECT_SIZE
+
 unit_w = resolution_w / cam_w
 unit_h = resolution_h / cam_h
 
-while True:
+#with open("data/bounds.pkl") as f:
+#    MOUSE_X_SCALE, MOUSE_Y_SCALE, ANCHOR_POINT = pickle.load(f)
+
+print("entering loop")
+print(dlib.DLIB_USE_CUDA)
+while 1:
+    start_time = time.time()
+
     # Grab the frame from the threaded video file stream, resize
     # it, and convert it to grayscale
     # channels)
@@ -67,11 +104,11 @@ while True:
     # Detect faces in the grayscale frame
     rects = detector(gray, 0)
 
-    # Loop over the face detections
+    # Select first face
     if len(rects) > 0:
         rect = rects[0]
     else:
-        cv2.imshow("Frame", frame)
+        #cv2.imshow("Frame", frame)
         key = cv2.waitKey(1) & 0xFF
         continue
 
@@ -107,13 +144,6 @@ while True:
     mouthHull = cv2.convexHull(mouth)
     leftEyeHull = cv2.convexHull(leftEye)
     rightEyeHull = cv2.convexHull(rightEye)
-    cv2.drawContours(frame, [mouthHull], -1, YELLOW_COLOR, 1)
-    cv2.drawContours(frame, [leftEyeHull], -1, YELLOW_COLOR, 1)
-    cv2.drawContours(frame, [rightEyeHull], -1, YELLOW_COLOR, 1)
-
-    for (x, y) in np.concatenate((mouth, leftEye, rightEye), axis=0):
-        cv2.circle(frame, (x, y), 2, GREEN_COLOR, -1)
-        
     # Check to see if the eye aspect ratio is below the blink
     # threshold, and if so, increment the blink frame counter
     if diff_ear > WINK_AR_DIFF_THRESH:
@@ -137,7 +167,7 @@ while True:
                     WINK_COUNTER = 0
         else:
             WINK_COUNTER = 0
-    else:
+    elif not SCROLL_MODE:
         if ear <= EYE_AR_THRESH:
             EYE_COUNTER += 1
 
@@ -157,61 +187,108 @@ while True:
 
         if MOUTH_COUNTER >= MOUTH_AR_CONSECUTIVE_FRAMES:
             # if the alarm is not on, turn it on
-            INPUT_MODE = not INPUT_MODE
+            #INPUT_MODE = not INPUT_MODE
             # SCROLL_MODE = not SCROLL_MODE
             MOUTH_COUNTER = 0
-            ANCHOR_POINT = nose_point
-
+            CALIBRATION_MODE = True
+            INPUT_MODE = False
     else:
         MOUTH_COUNTER = 0
-
-    if INPUT_MODE:
-        cv2.putText(frame, "READING INPUT!", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
-        x, y = ANCHOR_POINT
-        nx, ny = nose_point
-        w, h = 60, 35
-        multiple = 1
-        cv2.rectangle(frame, (x - w, y - h), (x + w, y + h), GREEN_COLOR, 2)
-        cv2.line(frame, ANCHOR_POINT, nose_point, BLUE_COLOR, 2)
-
-        dir = direction(nose_point, ANCHOR_POINT, w, h)
-        cv2.putText(frame, dir.upper(), (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
-        drag = 18
-        if dir == 'right':
-            pag.moveRel(drag, 0)
-        elif dir == 'left':
-            pag.moveRel(-drag, 0)
-        elif dir == 'up':
-            if SCROLL_MODE:
-                pag.scroll(40)
-            else:
-                pag.moveRel(0, -drag)
-        elif dir == 'down':
-            if SCROLL_MODE:
-                pag.scroll(-40)
-            else:
-                pag.moveRel(0, drag)
-
     if SCROLL_MODE:
-        cv2.putText(frame, 'SCROLL MODE IS ON!', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+        if ear >= EYE_AR_THRESH:
+            EYE_COUNTER += 1
 
-    # cv2.putText(frame, "MAR: {:.2f}".format(mar), (500, 30),
-    #             cv2.FONT_HERSHEY_SIMPLEX, 0.7, YELLOW_COLOR, 2)
-    # cv2.putText(frame, "Right EAR: {:.2f}".format(rightEAR), (460, 80),
-    #             cv2.FONT_HERSHEY_SIMPLEX, 0.7, YELLOW_COLOR, 2)
-    # cv2.putText(frame, "Left EAR: {:.2f}".format(leftEAR), (460, 130),
-    #             cv2.FONT_HERSHEY_SIMPLEX, 0.7, YELLOW_COLOR, 2)
-    # cv2.putText(frame, "Diff EAR: {:.2f}".format(np.abs(leftEAR - rightEAR)), (460, 80),
-    #             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+            if EYE_COUNTER > EYE_AR_CONSECUTIVE_FRAMES:
+                SCROLL_MODE = not SCROLL_MODE
+                # INPUT_MODE = not INPUT_MODE
+                EYE_COUNTER = 0
 
-    # Show the frame
-    cv2.imshow("Frame", frame)
-    key = cv2.waitKey(1) & 0xFF
+                # nose point to draw a bounding box around it
 
-    # If the `Esc` key was pressed, break from the loop
-    if key == 27:
-        break
+        else:
+            EYE_COUNTER = 0
+    if CALIBRATION_MODE:
+        cv2.putText(frame, "CALIBRATING!", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+        key = cv2.waitKey(30) & 0xFF
+        if CALIBRATION_STEP==0:
+            CALIBRATION_STEP += 1
+            key = 0xFF
+            continue
+        elif CALIBRATION_STEP==1:
+            cv2.putText(frame, 'CENTER NOSE AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+            if key == 32:
+                ANCHOR_POINT = nose_point
+                CALIBRATION_STEP += 1
+                key = 0xFF
+                continue
+        elif CALIBRATION_STEP==2:
+            cv2.putText(frame, 'MOVE NOSE TO FAR LEFT AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+            if key == 32:
+                SCREEN_LEFT = nose_point[0]
+                CALIBRATION_STEP += 1
+                key = 0xFF
+                continue
+        elif CALIBRATION_STEP==3:
+            cv2.putText(frame, 'MOVE NOSE TO FAR RIGHT AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+            if key == 32:
+                SCREEN_RIGHT = nose_point[0]
+                CALIBRATION_STEP += 1
+                key = 0xFF
+                continue
+        elif CALIBRATION_STEP==4:
+            cv2.putText(frame, 'MOVE NOSE TO TOP AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+            if key == 32:
+                SCREEN_TOP = nose_point[1]
+                CALIBRATION_STEP += 1
+                key = 0xFF
+                continue
+        elif CALIBRATION_STEP==5:
+            cv2.putText(frame, 'MOVE NOSE TO BOTTOM AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+            if key == 32:
+                SCREEN_BOTTOM = nose_point[1]
+                #Calculate scales
+                MOUSE_X_SCALE = 1.2*DECT_SIZE[0]/(SCREEN_BOTTOM - SCREEN_TOP)
+                MOUSE_Y_SCALE = 1.2*DECT_SIZE[1]/(SCREEN_RIGHT - SCREEN_LEFT)
+                CALIBRATION_MODE = False
+                INPUT_MODE = True
+                CALIBRATION_STEP = 0
+
+                with open("data/bounds.pkl", "wb") as f:
+                    pickle.dump([MOUSE_X_SCALE, MOUSE_Y_SCALE, ANCHOR_POINT], f)
+
+                key = 0xFF
+                cv2.destroyAllWindows()
+
+                continue
+        cv2.drawContours(frame, [mouthHull], -1, YELLOW_COLOR, 1)
+        cv2.drawContours(frame, [leftEyeHull], -1, YELLOW_COLOR, 1)
+        cv2.drawContours(frame, [rightEyeHull], -1, YELLOW_COLOR, 1)
+        cv2.line(frame, ANCHOR_POINT, nose_point, BLUE_COLOR, 2)
+        cv2.imshow("Frame", frame)
+        key = cv2.waitKey(1) & 0xFF
+        continue
+
+
+        
+    if INPUT_MODE:
+        mx, my = calculate_pixel_delta(SCREEN_SIZE, DECT_SIZE, nose_point, ANCHOR_POINT, (MOUSE_X_SCALE, MOUSE_Y_SCALE))
+        if SCROLL_MODE:
+            d = my/(SCREEN_SIZE[1] /2)
+            s = scroll_calc(d, SCROLL_THRESH,-SCROLL_SCALE)
+            pag.scroll(s)
+        else:
+            #print((mx,my))
+            xhist[1:(len(xhist)-1)] = xhist[0:(len(xhist)-2)]
+            xhist[0] = mx
+            yhist[1:(len(yhist)-1)] = yhist[0:(len(yhist)-2)]
+            yhist[0] = my
+            x = int(np.mean(xhist))
+            y = int(np.mean(yhist))
+            
+            pag.moveTo(x+SCREEN_SIZE[0]//2, y+SCREEN_SIZE[1]//2, duration=0.001)
+
 
 # Do a bit of cleanup
 cv2.destroyAllWindows()
 vid.release()
+ 

@@ -20,6 +20,18 @@ Special thanks to **Adrian Rosebrock** for his amazing blog posts [[2](#referenc
 * PyAutoGUI - 0.9.36
 * Dlib - 19.4.0
 * Imutils - 0.4.6
+* 
+###UPDATE (04/11/21)
+The following versions are reported to work on Manjaro Linux:
+```
+Package       Version
+------------- --------
+dlib          19.22.1
+imutils       0.5.4
+numpy         1.21.3
+opencv-python 4.5.3.56
+PyAutoGUI     0.9.53
+```
 
 ## Execution
 Order of Execution is as follows:

@@ -1,0 +1,3 @@
+# Gitignore
+venv/
+.vscode/

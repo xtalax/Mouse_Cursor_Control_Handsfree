@@ -37,6 +37,41 @@ def mouth_aspect_ratio(mouth):
     # Return the mouth aspect ratio
     return mar
 
+# Take in nose position and calculate output mouse position as a function of the scale factor and screen size
+def calculate_pixel_delta(screen,dect,nosepos,anchorpoint,scale):
+    sx, sy = screen
+    dx, dy = dect #detection res
+    nx, ny = nosepos
+    cx, cy = anchorpoint #center point
+    kx, ky = scale #xy scale factor
+
+    x, y = (int(sx*kx*(nx-cx)/dx), int(sy*ky*(ny-cy)/dy))
+
+    if x<=(-screen[0]//2):
+        x=(-screen[0]//2)+1
+    elif x>(screen[0]//2):
+        x = (screen[0]//2)
+
+    if y<=(-screen[1]//2):
+        y=(-screen[1]//2)+1
+    elif y>(screen[1]//2):
+        y = (screen[1]//2)
+    return (x,y)
+
+def scroll_calc(d, thresh, scale): 
+    if d > 0:
+        if d > thresh:
+            d -= thresh
+        else:
+            d = 0.0
+        d = d**2
+    else:
+        if d < -thresh:
+            d+=thresh
+        else:
+            d = 0.0
+        d = -d**2
+    return int(d*scale)
 
 # Return direction given the nose and anchor points.
 def direction(nose_point, anchor_point, w, h, multiple=1):
