@@ -7,7 +7,9 @@ def control(detector, b):
     scrollframes = 4
     winkframes = 3
     calibrationframes = 8
-    scrollthresh = 0.05
+    scrollthresh = 0.01
+    scrollspeed = 6
+    haltthresh = 10 # pixel delta threshold before mouse starts to move
     N = 6
     iscroll = 0
     iwink = 0
@@ -28,7 +30,7 @@ def control(detector, b):
             continue
         
         face = Face(points, frame)
-
+        print(face.diffear)
         if face.diffear > b.wink:
 
             if face.lear < face.rear:
@@ -53,29 +55,14 @@ def control(detector, b):
 
         if scrollmode:
             if face.mar < b.tiny: # if mouth round
-                iscroll += 1
-
-                if iscroll > scrollframes:
-                    scrollmode = not scrollmode
-                    # INPUT_MODE = not INPUT_MODE
-                    scrolldatum = face.origin[1]
-                    iscroll = 0
-
-                    # nose point to draw a bounding box around it
-
-            else:
-                iscroll = 0
+                scrollmode = not scrollmode
+                # INPUT_MODE = not INPUT_MODE
+                scrolldatum = face.origin[1]
         else:
             if face.mar > b.tiny:
-                iscroll += 1
-
-                if iscroll > scrollframes:
-                    scrollmode = not scrollmode
-                    # INPUT_MODE = not INPUT_MODE
-                    iscroll = 0
-            else:
-                iscroll = 0
-
+                scrollmode = not scrollmode
+                # INPUT_MODE = not INPUT_MODE
+                
         if face.mar > b.pog: #if pog, calibrate
             icalibration += 1
 
@@ -88,7 +75,7 @@ def control(detector, b):
         if face.ear < b.squint:
             mk = 0.3
         elif face.ear > b.wide:
-            mk = 1.2
+            mk = 1.8
         else:
             mk = 1.0
 
@@ -104,18 +91,17 @@ def control(detector, b):
         khist[1:(len(khist)-1)] = khist[0:(len(khist)-2)]
         khist[0] = mk
         k = np.mean(khist)
-        print(k)
+        
 
         x = np.mean(xhist)
         y = np.mean(yhist)
         
         if scrollmode:
-            d = 2*(y - scrolldatum)/(pag.size()[1])
-            s = scroll_scale(d, scrollthresh, -6)
+            d = 2*(y - scrolldatum)/(pag.size()[1]) 
+            s = scroll_scale(d, scrollthresh, scrollspeed)
             pag.scroll(s)
-        else:
+        elif any([np.linalg.norm([xhist[i]-x,yhist[i]-y])>haltthresh for i in range(1, N-1)]): # only move if head hoves more than a certain threshold
             #print((mx,my))
-
-            pag.moveRel(int(k*(x-xold)), int(k*(y-yold)), duration=0.075)
+            pag.moveRel(int(k*(x-xold)), int(k*(y-yold)), duration=0.05)
             xold = x
             yold = y

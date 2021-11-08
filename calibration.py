@@ -144,7 +144,7 @@ class Bounds:
         self.squint = mean([restingEAR, squintEAR]).item() # threshold to detect squint
         self.eclosed = mean([squintEAR, closedEAR]).item() # threshold to detect closed eyes
 
-        self.ewide = mean([restingEAR, wideEAR]).item() # threshold to detect wide eyes
+        self.wide = mean([restingEAR, wideEAR]).item() # threshold to detect wide eyes
 
         self.wink = mean([0.0, abs(restingEAR -closedEAR)]).item() # threshold of difference in eye aspect ratio to detect wink
         self.browraised = mean([raisedbrowdist, restingbrowdist]).item() #threshold to detect raised eyebrows 
