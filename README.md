@@ -1,18 +1,31 @@
 # Mouse Cursor Control Using Facial Movements [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/akshaychandra21/Mouse_Cursor_Control_Handsfree/blob/master/LICENSE)
 
-This HCI (Human-Computer Interaction) application in Python(3.6) will allow you to control your mouse cursor with your facial movements, works with just your regular webcam. Its hands-free, no wearable hardware or sensors needed.
+This HCI (Human-Computer Interaction) application in Python(3.6) will allow you to control your mouse cursor with your facial movements, works with just your regular webcam. Its hands-free, no wearable hardware or sensors needed. It will become an open gesture control platform, with user definable functions that will be run when the user performs supported gestures, or gesture combinations.
 
-At this point, you are forced to work with the facial movements I chose but I am working on making them configurable. The list of actions include:
+Issues and feature requests welcome!
 
- - Squinting your eyes (**squint** _(v.)_ - To look with the eyes partly closed, as in bright sunlight)
- - Winking
- - Moving your head around (pitch and yaw)
- - Opening your mouth (a little bit, yes)
+Delete `data/bounds.json` and run to enter the calibration routine. This will walk you through a series of facial movements to calibrate the appropriate thresholds and scales to recognise your particular forms of the following facial expressions:
+- Looking around the screen, pointing with your nose. (Bound to cursor movement)
+- Squinting your eyes. (Bound to fine mouse control i.e. slowing your cursor)
+- Widening your eyes. (Bound to fast cursor movement)
+- Blinking.
+- Winking either eye. (Bound to left and right click)
+- Raising your eyebrows. 
+- Making an o shape with your mouth. (Bound to scrolling mode, combined with head movement)
+- Opening your mouth wide.
+- Making an O shape with your mouth aka pog. (Bound to entering calibration mode)
+- Smiling.
+### Coming soon:
+- Frowning.
+- Raising either hand.
+- Looking around the screen with your eyes
 
-Special thanks to **Adrian Rosebrock** for his amazing blog posts [[2](#references)] [[3](#references)], code snippets and his imutils library [[7](#references)] that played an important role in making this idea of mine a reality.
+This is adapted and built upon the code written by **Akshay Chandra Lagandula**, original repo [here](https://github.com/acl21/Mouse_Cursor_Control_Handsfree)
+Special thanks to **Adrian Rosebrock** for his amazing blog posts [[2](#references)] [[3](#references)], code snippets and his imutils library [[7](#references)] that played an important role in making this idea a reality.
 
 ## Working Example
 <img src="https://github.com/akshaychandra21/Mouse_Cursor_Control_Handsfree/blob/master/demo.gif">
+Note that the current function is different, with smooth mouse and scroll.
 
 ## Code Requirements
 ```
@@ -35,8 +48,9 @@ Order of Execution is as follows:
 Please raise an issue in case of any errors. 
 
 ## Usage
- 
-
+The control logic is defined in `control.py`, define actions to happen based on gestures here. If you do anything cool, please open a PR.
+For the names and descriptions of the facial metrics see the definition of the `Face` class in `facedetector.py`.
+For definitions, names and descriptions of threshold values and scale factors see the definition of `Bounds` in `calibration.py`
 
 ## How It Works
 This project is deeply centered around predicting the facial landmarks of a given face. We can accomplish a lot of things using these landmarks. From detecting eye-blinks [[3](#references)] in a video to predicting emotions of the subject. The applications, outcomes and possibilities of facial landmarks are immense and intriguing.
