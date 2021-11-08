@@ -50,7 +50,9 @@ Please raise an issue in case of any errors.
 
 ## Usage
 The control logic is defined in `control.py`, define actions to happen based on gestures here. If you do anything cool, please open a PR.
+
 For the names and descriptions of the facial metrics see the definition of the `Face` class in `facedetector.py`.
+
 For definitions, names and descriptions of threshold values and scale factors see the definition of `Bounds` in `calibration.py`
 
 ## How It Works
