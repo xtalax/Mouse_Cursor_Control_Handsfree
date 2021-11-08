@@ -20,7 +20,8 @@ Delete `data/bounds.json` and run to enter the calibration routine. This will wa
 - Raising either hand.
 - Looking around the screen with your eyes
 
-This is adapted and built upon the code written by **Akshay Chandra Lagandula**, original repo [here](https://github.com/acl21/Mouse_Cursor_Control_Handsfree)
+This is adapted and built upon the code written by **Akshay Chandra Lagandula**, original repo [here](https://github.com/acl21/Mouse_Cursor_Control_Handsfree).
+
 Special thanks to **Adrian Rosebrock** for his amazing blog posts [[2](#references)] [[3](#references)], code snippets and his imutils library [[7](#references)] that played an important role in making this idea a reality.
 
 ## Working Example
