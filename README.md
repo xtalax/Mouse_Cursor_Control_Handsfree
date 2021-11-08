@@ -5,15 +5,15 @@ This HCI (Human-Computer Interaction) application in Python(3.6) will allow you 
 Issues and feature requests welcome!
 
 Delete `data/bounds.json` and run to enter the calibration routine. This will walk you through a series of facial movements to calibrate the appropriate thresholds and scales to recognise your particular forms of the following facial expressions:
-- Looking around the screen, pointing with your nose. (Bound to cursor movement)
-- Squinting your eyes. (Bound to fine mouse control i.e. slowing your cursor)
-- Widening your eyes. (Bound to fast cursor movement)
+- Looking around the screen, pointing with your nose. **(Bound to cursor movement)**
+- Squinting your eyes. **(Bound to fine mouse control i.e. slowing your cursor)**
+- Widening your eyes. **(Bound to fast cursor movement)**
 - Blinking.
-- Winking either eye. (Bound to left and right click)
+- Winking either eye. **(Bound to left and right click)**
 - Raising your eyebrows. 
-- Making an o shape with your mouth. (Bound to scrolling mode, combined with head movement)
+- Making an o shape with your mouth. **(Bound to scrolling mode, combined with head movement)**
 - Opening your mouth wide.
-- Making an O shape with your mouth aka pog. (Bound to entering calibration mode)
+- Making an O shape with your mouth aka pog. **(Bound to entering calibration mode)**
 - Smiling.
 ### Coming soon:
 - Frowning.
