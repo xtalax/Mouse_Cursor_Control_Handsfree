@@ -54,12 +54,12 @@ def control(detector, b):
             iwink = 0
 
         if scrollmode:
-            if face.mar < b.tiny: # if mouth round
+            if face.marea < b.resto: # if mouth round scroll
                 scrollmode = not scrollmode
                 # INPUT_MODE = not INPUT_MODE
                 scrolldatum = face.origin[1]
         else:
-            if face.mar > b.tiny:
+            if face.marea > b.resto:
                 scrollmode = not scrollmode
                 # INPUT_MODE = not INPUT_MODE
                 
@@ -93,7 +93,7 @@ def control(detector, b):
         k = np.mean(khist)
         
 
-        x = np.mean(xhist)
+        x = np.mean(xhist) # take rolling average for position values
         y = np.mean(yhist)
         
         if scrollmode:
