@@ -1,4 +1,4 @@
-# Face Control - An open gesture based computer control platform [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/akshaychandra21/Mouse_Cursor_Control_Handsfree/blob/master/LICENSE)
+# Face Control - An open gesture based computer control package [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/akshaychandra21/Mouse_Cursor_Control_Handsfree/blob/master/LICENSE)
 
 This HCI (Human-Computer Interaction) application in Python(3.6) will allow you to control your mouse cursor with your facial movements, works with just your regular webcam. Its hands-free, no wearable hardware or sensors needed. It will become an open gesture control platform, with user definable functions that will be run when the user performs supported gestures, or gesture combinations.
 
