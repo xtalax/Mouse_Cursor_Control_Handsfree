@@ -12,6 +12,7 @@ import json
 from utils import *
 from facedetector import *
 from calibration import *
+from gesturedetection import *
 
 # Initialize Dlib's face detector (HOG-based) and then create
 # the facial landmark predictor

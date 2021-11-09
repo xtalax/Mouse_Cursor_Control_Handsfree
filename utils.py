@@ -19,6 +19,10 @@ class dotdict(dict):
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
     
+def histupdate(x, hist):
+    hist[1:] = hist[:(len(hist)-2)]
+    hist[0] = x
+    return (np.mean(hist), hist)
 
 # Returns EAR given eye landmarks
 def eye_aspect_ratio(eye):
@@ -67,10 +71,17 @@ def smile_flatness(mouth):
     b = mouth[6] - mouth[0]
     return np.dot(a/np.linalg.norm(a), b/np.linalg.norm(b))
 
+def frown_flatness(mouth):
+        # Compute mouth lower line flatness
+    a = mouth[9] - mouth[0]
+    b = mouth[6] - mouth[0]
+    return np.dot(a/np.linalg.norm(a), b/np.linalg.norm(b))
+
 
 def retrieve_name(var):
     callers_local_vars = inspect.currentframe().f_back.f_locals.items()
     return [var_name for var_name, var_val in callers_local_vars if var_val is var]
+
 
 # Take in nose position and calculate output mouse position as a function of the scale factor and screen size
 def calculate_pixel_delta(screen,dect,nosepos,anchorpoint,scale):
@@ -83,6 +94,7 @@ def calculate_pixel_delta(screen,dect,nosepos,anchorpoint,scale):
     x, y = (int(sx*kx*(nx-cx)/dx), int(sy*ky*(ny-cy)/dy))
 
     return (x,y)
+
 
 def scroll_scale(d, thresh, scale): 
     if d > 0:

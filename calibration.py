@@ -2,9 +2,9 @@ import cv2
 from statistics import mean
 from facedetector import Face
 from numpy import abs
-from control import control
 import json
 from json import JSONEncoder
+from ControlSettings import ControlSettings
 
 WHITE_COLOR = (255, 255, 255)
 YELLOW_COLOR = (0, 255, 255)
@@ -19,12 +19,18 @@ BLACK_COLOR = (0, 0, 0)
 def calibrate(detector):
     step = 0
     center = (1,1)
+    while 1: #loop until face detected
+        points, frame = detector.detect_faces()
+        if points is not None:
+            break
+            
+    face = Face(points, frame)
     while step<10:
         points, frame = detector.detect_faces()
         if points is None:
             continue
         
-        face = Face(points, frame)
+        face.update(points, frame)
 
         cv2.putText(face.frame, "CALIBRATING!", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
         
@@ -36,11 +42,11 @@ def calibrate(detector):
             step += 1
             key = 0xFF
         elif step==1:
-            cv2.putText(face.frame, 'CENTER NOSE, SMALL O MOUTH AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+            cv2.putText(face.frame, 'CENTER NOSE, O MOUTH AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
             if key == 32:
                 center = face.origin
                 restingbrowdist = face.browdist
-                minarea = face.marea
+                minarea = face.moutharea
                 tinyMAR = face.mar
                 step += 1
                 key = 0xFF
@@ -69,46 +75,46 @@ def calibrate(detector):
 
             if key == 32:
                 nosebottom = face.origin[1]
-                wideEAR = face.ear
+                wideEAR = face.eyear
                 restingMAR = face.mar
-                restingflatness = face.sf
-                restingarea = face.marea
+                restingff = face.frownfactor
+                restingarea = face.moutharea
                 #Calculate scales
                 step += 1
                 key = 0xFF
         elif step==6:
             cv2.putText(face.frame, 'PUT EYES IN RESTING POSTITION,', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
-            cv2.putText(face.frame, 'OPEN MOUTH ALL THE WAY, RAISE BROWS', (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+            cv2.putText(face.frame, 'OPEN MOUTH WIDE, RAISE BROWS', (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
             cv2.putText(face.frame, 'AND PRESS SPACE', (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
 
             if key==32:
                 maxMAR = face.mar
-                maxarea = face.marea
-                opensf = face.sf
-                restingEAR = face.ear
+                maxarea = face.moutharea
+                opensf = face.smilefactor
+                restingEAR = face.eyear
                 raisedbrowdist = face.browdist
                 step += 1
                 key = 0xFF
         elif step==7:
             cv2.putText(face.frame, 'SQUINT EYES, SMILE AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
             if key==32:#
-                squintEAR = face.ear
+                squintEAR = face.eyear
                 smileMAR = face.mar
-                smilesf = face.sf
+                smilesf = face.smilefactor
                 step += 1 
                 key = 0xFF
         elif step==8:
-            cv2.putText(face.frame, 'CLOSE EYES, MOUTH AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
+            cv2.putText(face.frame, 'CLOSE EYES, FROWN AND PRESS SPACE', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, RED_COLOR, 2)
             if key==32:
-                closedEAR = face.ear
-                closedMAR = face.mar
+                closedEAR = face.eyear
+                frownff = face.frownfactor
                 step += 1 
 
                 key = 0xFF
 
         elif step==9:
             
-            bounds = Bounds(center, detector, minarea, tinyMAR, noseleft, noseright, pogMAR, nosetop, nosebottom, wideEAR, restingMAR, restingarea, maxarea, opensf, restingEAR, squintEAR, smilesf, closedEAR, raisedbrowdist, restingbrowdist)
+            bounds = Bounds(center, detector, minarea, tinyMAR, noseleft, noseright, pogMAR, nosetop, nosebottom, wideEAR, restingMAR, restingarea, maxarea, opensf, restingEAR, squintEAR, smilesf, restingff,frownff,closedEAR, raisedbrowdist, restingbrowdist)
             
             # with open("data/bounds.pkl", "wb") as f:
             #     pickle.dump([MOUSE_X_SCALE, MOUSE_Y_SCALE, ANCHOR_POINT], f)
@@ -123,6 +129,10 @@ def calibrate(detector):
         cv2.drawContours(face.frame, [face.leftBrow], -1, YELLOW_COLOR, 1)
         cv2.drawContours(face.frame, [face.rightBrow], -1, YELLOW_COLOR, 1)
 
+        for item in face.nose:
+            cv2.drawMarker(frame, (item[0], item[1]), GREEN_COLOR, markerType=cv2.MARKER_STAR, markerSize=40, thickness=2, line_type=cv2.LINE_AA)
+
+
         cv2.line(face.frame, center, face.origin, BLUE_COLOR, 2)
         cv2.imshow("Frame", face.frame)
     
@@ -131,15 +141,16 @@ def calibrate(detector):
     return bounds
 
 class Bounds:
-    def __init__(self, center, detector, minarea, tinyMAR, noseleft, noseright, pogMAR, nosetop, nosebottom, wideEAR, restingMAR, restingarea, maxarea, opensf, restingEAR, squintEAR, smilesf, closedEAR, raisedbrowdist, restingbrowdist):
+    def __init__(self, center, detector, minarea, tinyMAR, noseleft, noseright, pogMAR, nosetop, nosebottom, wideEAR, restingMAR, restingarea, maxarea, opensf, restingEAR, squintEAR, smilesf, restingff,frownff, closedEAR, raisedbrowdist, restingbrowdist):
         self.center = [x.item() for x in center] # nose positiion when centerd
         self.kx = 1.2*detector.feed_w/(nosebottom - nosetop).item()
         self.ky=1.2*detector.feed_h/(noseright - noseleft).item() # scaling to achieve a screen width of movement with full head range
-        self.mopen = mean([restingarea, maxarea]).item() #area threshold between resting and open
+        self.mouthopen = mean([restingarea, maxarea]).item() #area threshold between resting and open
         self.tiny = mean([restingMAR, tinyMAR]).item() # aspect ratio threshold between resting and tiny
         self.resto = mean([restingarea, minarea]).item() # area threshold between resting and o mouth
         self.pog = mean([tinyMAR, pogMAR]).item() # aspect ratio threshold between o mouth and pog
         self.smile = mean([opensf, smilesf]).item() # threshold of mouth top flatness to detect smile
+        self.frown = mean([restingff, frownff]).item() # threshold of mouth
 
         self.squint = mean([restingEAR, squintEAR]).item() # threshold to detect squint
         self.eclosed = mean([squintEAR, closedEAR]).item() # threshold to detect closed eyes
