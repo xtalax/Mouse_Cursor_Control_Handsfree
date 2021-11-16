@@ -1,6 +1,8 @@
 import pyautogui as pag
 from utils import *
+import actions
 pag.FAILSAFE = False
+LOGGING = True
 
 # -------------------------------
 # Gestures
@@ -9,50 +11,82 @@ pag.FAILSAFE = False
 # Initialise any variables that are persistent or shared between gestures in the __init__ for the class `ControlSettings` in gesture
 
 def leftwink(face, b, s):
-    pag.click(button='left')
+    if LOGGING:
+        print("Left Wink Detected")
 
+    None
 def rightwink(face, b, s):
-    pag.click(button='right')
-    
+    if LOGGING:
+        print("Right Wink Detected")
+
+    None
 def squint(face, b, s):
-    x = None # Dummy command
+    if LOGGING:
+        print("Squint Detected")
+    s.scrollmode = True #
+    s.mousespeed = 1.0
 
 def wideeyes(face, b, s):
-    x = None # Dummy command
+    if LOGGING:
+        print("Wide Eyes Detected")
+    s.mousespeed = 0.5
 
 def restingeyes(face, b, s):
-    x = None # Dummy command
+    if LOGGING:
+        print("Eyes Resting")
+    s.mousespeed = 1.0
 
 def raisedbrows(face, b, s):
+    if LOGGING:
+        print("Brows Raised")
     x = None # Dummy command
 
 def restingbrows(face, b, s):
+    if LOGGING:
+        print("Brows Resting")
     x = None # Dummy command
 
 def smile(face, b, s):
-    x = None # Dummy command
+    if LOGGING:
+        print("Smile Detected")
+    #x = None # Dummy command
 
 def frown(face, b, s):
-    x = None # Dummy command
+    if LOGGING:
+        print("Frown Detected")
+    #pag.click(button='right')
+    #x = None # Dummy command
 
 def omouth(face, b, s):
-    x, y = (s.x, s.y)
-    d = 2*(y - s.scrolldatum)/(pag.size()[1]) 
-    s = scroll_scale(d, s.scrollthresh, s.scrollspeed)
-    pag.scroll(s)
+    if LOGGING:
+        print("O mouth Detected")
+
+
 
 def widemouth(face, b, s):
+    if LOGGING:
+        print("Wide mouth Detected")
+
     x = None # Dummy command
 
 def pog(face, b, s):
-    x = None # Dummy command
+    if LOGGING:
+        print("Pog Detected")
+    #s.calibrate=True # Dummy command
 
 def restingmouth(face, b, s):
+    if LOGGING:
+        print("Mouth Resting")
+
     x = None # Dummy command
 
-def any(face, b, s):
-    if any([np.linalg.norm(face.originhist[i]-face.origin)>s.mousethresh for i in range(1, len(face.originhist)-1)]): # only move if head hoves more than a certain threshold
-    #print((mx,my))
-        pag.moveRel(int(s.k*(s.x-s.xold)), int(s.k*(s.y-s.yold)), duration=0.05)
-        s.xold = s.x
-        s.yold = s.y
+def scrollmode(face, b, s):
+    x, y = (s.nosex, s.nosey)
+    d = -(y)/(pag.size()[1]) 
+    s = scroll_scale(d, s.scrollthresh, s.scrollspeed)
+    pag.scroll(s)
+
+def mousemode(face, b, s):
+    #print((face.eyex, face.eyey))
+    actions.controlmouse(s.nosex, s.nosey, s)
+    None

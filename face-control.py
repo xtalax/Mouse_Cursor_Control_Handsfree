@@ -16,7 +16,7 @@ from gesturedetection import *
 
 # Initialize Dlib's face detector (HOG-based) and then create
 # the facial landmark predictor
-shape_predictor = "model/shape_predictor_68_face_landmarks.dat"
+shape_predictor = "models/shape_predictor_68_face_landmarks.dat"
 face_detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(shape_predictor)
 
@@ -35,7 +35,6 @@ if os.path.isfile("data/bounds.json"):
 while 1:
     bounds = calibrate(detector)
     control(detector, bounds) #control the computer
-    break
     # Do a bit of cleanup
 cv2.destroyAllWindows()
 detector.release()

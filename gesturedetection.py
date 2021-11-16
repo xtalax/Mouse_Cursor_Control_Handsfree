@@ -3,6 +3,7 @@ import pyautogui as pag
 from utils import *
 from ControlSettings import *
 import gestures
+import time
 
 def control(detector, b):
 
@@ -14,13 +15,21 @@ def control(detector, b):
     face = Face(points, frame)
     settings = ControlSettings(detector, face, b)
 
-    while 1:
+    #Wait until eye threshold is calibrated and history filled
+    while not face.gazecalibrated:
         points, frame = detector.detect_faces()
         if points is None:
             continue
         face.update(points, frame)
-
-        settings.update(face, b)
+    elapsed = 0.1
+    while 1:
+        start = time.time()
+        points, frame = detector.detect_faces()
+        if points is None:
+            continue
+        face.update(points, frame)
+        settings.update(face, b, elapsed)
+        settings.scrollmode = False
 
 # --------------------------------
 # # Gesture detection logic
@@ -28,20 +37,26 @@ def control(detector, b):
 
         if face.diffar > b.wink:
             if face.leftar < face.rightar:
-                if face.lear < b.eclosed:
+                if face.leftar < b.squint:
                     gestures.leftwink(face, b, settings)
 
             elif face.leftar > face.rightar:
-                if face.rear < b.eclosed:
+                if face.rightar < b.squint:
                     gestures.rightwink(face, b, settings)
-
-        if face.moutharea < b.resto: # if mouth round 
-            gestures.omouth(face, b, settings)
-        if face.moutharea > b.resto:
+        if (face.moutharea > b.omouth) and (face.mar < b.pog):
             if face.moutharea > b.mouthopen: # if mouth open
-                gestures.mouthopen(face, b, settings)
+                gestures.widemouth(face, b, settings)
+
+            elif (face.smilefactor > b.smile) and (face.moutharea > b.smilearea): # if smile
+                gestures.smile(face, b, settings)
             else:
-                gestures.restingmouth(face, b, settings)
+                gestures.omouth(face, b, settings)
+        
+        # elif face.frownfactor > b.frown: # if frown
+        #     gestures.frown(face, b, settings)
+                
+        else:    
+            gestures.restingmouth(face, b, settings)
                        
         if face.eyear < b.squint:
             gestures.squint(face, b, settings)
@@ -50,13 +65,21 @@ def control(detector, b):
         else:
             gestures.restingeyes(face, b, settings)
 
-        if face.smilefactor > b.smile: # if smile
-            gestures.smile(face, b, settings)
-
-        if face.frownfactor > b.frown: # if frown
-            gestures.frown(face, b, settings)
 
         if face.mar > b.pog: #if pog, calibrate
             gestures.pog(face, b, settings)
 
-        gestures.any(face, b, settings) # commands to run every time
+        if face.browdist > b.browraised: # if brows raised
+            gestures.raisedbrows(face, b, settings)
+        else:
+            gestures.restingbrows(face, b, settings)
+        if settings.scrollmode:
+            gestures.scrollmode(face, b, settings) # commands to run every time
+        else:
+            gestures.mousemode(face, b, settings)
+        end = time.time()
+        if settings.calibrate:
+            break
+        elapsed = start - end
+
+        
