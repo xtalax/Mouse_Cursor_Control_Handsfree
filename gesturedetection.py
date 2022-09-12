@@ -29,7 +29,11 @@ def control(detector, b):
             continue
         face.update(points, frame)
         settings.update(face, b, elapsed)
-        settings.scrollmode = False
+        
+        #Reset scrolling state if timer has elapsed, plus an average tick
+        if time.time() > settings.scrolltime + settings.scrolldelay + settings.steptime: 
+            settings.isscrolling = False
+            settings.scrollstarted = False
 
 # --------------------------------
 # # Gesture detection logic
@@ -44,6 +48,7 @@ def control(detector, b):
                 if face.rightar < b.squint:
                     gestures.rightwink(face, b, settings)
         if (face.moutharea > b.omouth) and (face.mar < b.pog):
+            gestures.mouthopen(face, b, settings)
             if face.moutharea > b.mouthopen: # if mouth open
                 gestures.widemouth(face, b, settings)
 
@@ -73,13 +78,23 @@ def control(detector, b):
             gestures.raisedbrows(face, b, settings)
         else:
             gestures.restingbrows(face, b, settings)
-        if settings.scrollmode:
-            gestures.scrollmode(face, b, settings) # commands to run every time
+        if settings.isscrolling:
+            gestures.isscrolling(face, b, settings) # commands to run every time
         else:
             gestures.mousemode(face, b, settings)
-        end = time.time()
+
+        if abs(settings.eyex) > 5:
+            settings.screen.root.xfixes_hide_cursor()
+            settings.display.sync()
+        else:
+            settings.screen.root.xfixes_show_cursor()#
+            settings.display.sync()
+
         if settings.calibrate:
             break
+
+            
+        end = time.time()
         elapsed = start - end
 
         

@@ -23,13 +23,11 @@ def rightwink(face, b, s):
 def squint(face, b, s):
     if LOGGING:
         print("Squint Detected")
-    s.scrollmode = True #
-    s.mousespeed = 1.0
+    s.isscrolling = True #
 
 def wideeyes(face, b, s):
     if LOGGING:
         print("Wide Eyes Detected")
-    s.mousespeed = 0.5
 
 def restingeyes(face, b, s):
     if LOGGING:
@@ -39,11 +37,13 @@ def restingeyes(face, b, s):
 def raisedbrows(face, b, s):
     if LOGGING:
         print("Brows Raised")
+    s.mousespeed = 0.5
     x = None # Dummy command
 
 def restingbrows(face, b, s):
     if LOGGING:
         print("Brows Resting")
+    s.mousespeed = 1.0
     x = None # Dummy command
 
 def smile(face, b, s):
@@ -56,6 +56,9 @@ def frown(face, b, s):
         print("Frown Detected")
     #pag.click(button='right')
     #x = None # Dummy command
+
+def mouthopen(face, b, s):
+    None
 
 def omouth(face, b, s):
     if LOGGING:
@@ -80,13 +83,9 @@ def restingmouth(face, b, s):
 
     x = None # Dummy command
 
-def scrollmode(face, b, s):
-    x, y = (s.nosex, s.nosey)
-    d = -(y)/(pag.size()[1]) 
-    s = scroll_scale(d, s.scrollthresh, s.scrollspeed)
-    pag.scroll(s)
+def isscrolling(face, b, s):
+    actions.scroll(s.nosey, s)
 
 def mousemode(face, b, s):
     #print((face.eyex, face.eyey))
     actions.controlmouse(s.nosex, s.nosey, s)
-    None

@@ -1,6 +1,12 @@
 import pyautogui as pag
 import numpy as np
 import time
+import utils
+
+# a function to hide the mouse cursor
+def hidecursor():
+    pag.mouseDown()
+    pag.mouseUp()
 
 def click(button, s):
     if not s.isclicking:
@@ -11,6 +17,24 @@ def click(button, s):
         if time.time() > s.clickstarttime + s.clickdelay: #click only after delay has elapsed
             pag.click(button=button)
             s.isclicking = False
+
+def enablescroll(s):
+    if not s.isscrolling:
+        if s.scrollstarted:
+            if time.time() > s.scrolltime + s.scrolldelay: #scroll only after delay has elapsed
+                s.isscrolling = True
+                s.scrollstarted = False
+                s.scrolltime = time.time()
+        else:
+            s.scrollstarted = True
+            s.scrolltime = time.time()
+    else:
+        s.scrolltime = time.time()
+
+def scroll(y, s):
+    d = -(y)/(pag.size()[1]) 
+    s = utils.scroll_scale(d, s.scrollthresh, s.scrollspeed)
+    pag.scroll(s)
 
 def controlmouse(x,y,s):
     xold = s.mousexold

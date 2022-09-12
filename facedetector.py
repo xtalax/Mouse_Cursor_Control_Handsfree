@@ -236,6 +236,3 @@ class Face:
         a = mouth[9] - mouth[0]
         b = mouth[6] - mouth[0]
         return np.dot(a/np.linalg.norm(a), b/np.linalg.norm(b))
-
-
-

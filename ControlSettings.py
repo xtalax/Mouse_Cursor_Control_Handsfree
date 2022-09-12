@@ -7,6 +7,9 @@ from Xlib.display import Display
 class ControlSettings:
     def __init__(self, detector, face, b):
 
+        self.display = Display()
+        self.screen = self.display.screen()
+
         self.feed_w = detector.feed_w
         self.feed_h = detector.feed_h
         self.calibrate = False
@@ -25,6 +28,11 @@ class ControlSettings:
         self.isclicking = False
         self.clickstarttime = time.time()
         self.clickdelay = 0.1
+
+        self.isscrolling = False
+        self.scrollstarted = False
+        self.scrolltime = time.time()
+        self.scrolldelay = 0.1
 
         self.nosex = b.center[0]
         self.nosey = b.center[1]

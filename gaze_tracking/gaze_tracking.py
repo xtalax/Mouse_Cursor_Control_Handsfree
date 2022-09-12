@@ -74,7 +74,7 @@ class GazeTracking(object):
         """Returns a number between 0.0 and 1.0 that indicates the
         horizontal direction of the gaze. The extreme right is 0.0,
         the center is 0.5 and the extreme left is 1.0
-        """
+        """#
         if self.pupils_located:
             pupil_left = self.eye_left.pupil.x / (self.eye_left.center[0] * 2 - 10)
             pupil_right = self.eye_right.pupil.x / (self.eye_right.center[0] * 2 - 10)
@@ -103,7 +103,7 @@ class GazeTracking(object):
     def is_center(self):
         """Returns true if the user is looking to the center"""
         if self.pupils_located:
-            return self.is_right() is not True and self.is_left() is not True
+            return not self.is_right() and not self.is_left()
 
     def is_blinking(self):
         """Returns true if the user closes his eyes"""
